@@ -26,9 +26,9 @@ from CNN import cifar10_input
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_integer('batch_size', 128) #128�� �� ��ġ���� process �� �̹��� ����.
-tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_data') #CIFAR-10 data directory
-tf.app.flags.DEFINE_boolean('use_fp16', False) #fp16�� �̿��� ���� �Ʒý�Ų��. fp16�� �����ΰ�?
+tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
+tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_data', """CIFAR-10 data directory""") 
+tf.app.flags.DEFINE_boolean('use_fp16', False, """Train the model using fp16.""")
 
 IMAGE_SIZE = cifar10_input.IMAGE_SIZE
 NUM_CLASSES = cifar10_input.NUM_CLASSES
@@ -110,7 +110,7 @@ def inference(images):
         _activation_summary(conv2)
     
     norm2 = tf.nn.lrn(conv2, depth_radius=4, bias=1.0, alpha=0.001/9.0, beta=0.75, name='norm2')
-    pool2 = tf.nn.max_pool(norm2, ksize=[1, 3, 3, 1], strids=[1, 2, 2, 1], padding='SAME', name='pool2')
+    pool2 = tf.nn.max_pool(norm2, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='SAME', name='pool2')
     
     with tf.variable_scope('local3') as scope:
         reshape = tf.reshape(pool2, [images.get_shape().as_list()[0], -1])
@@ -164,7 +164,7 @@ def train(total_loss, global_step):
     
     with tf.control_dependencies([loss_averages_op]):
         opt = tf.train.GradientDescentOptimizer(lr)
-        grads = opt.compute_gradient(total_loss)
+        grads = opt.compute_gradients(total_loss)
         
     apply_gradient_op = opt.apply_gradients(grads, global_step=global_step)
     
